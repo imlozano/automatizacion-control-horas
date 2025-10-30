@@ -1,0 +1,1684 @@
+{
+    "name": "Integration Webhooks",
+    "flow": [
+        {
+            "id": 1,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": 1463752,
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": -1364,
+                    "y": 3
+                },
+                "restore": {
+                    "parameters": {
+                        "hook": {
+                            "data": {
+                                "editable": "true"
+                            },
+                            "label": "Telegram Bot"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "hook",
+                        "type": "hook:gateway-webhook",
+                        "label": "Webhook",
+                        "required": true
+                    },
+                    {
+                        "name": "maxResults",
+                        "type": "number",
+                        "label": "Maximum number of results"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 17,
+            "module": "datastore:GetRecord",
+            "version": 1,
+            "parameters": {
+                "datastore": 54541
+            },
+            "mapper": {
+                "key": "last_prompt",
+                "returnWrapped": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": -997,
+                    "y": 15
+                },
+                "restore": {
+                    "parameters": {
+                        "datastore": {
+                            "label": "tg_last_prompt"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "datastore",
+                        "type": "datastore",
+                        "label": "Data store",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "key",
+                        "type": "text",
+                        "label": "Key",
+                        "required": true
+                    },
+                    {
+                        "name": "returnWrapped",
+                        "type": "boolean",
+                        "label": "Return Wrapped Output",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "help": "",
+                        "name": "id",
+                        "type": "text",
+                        "label": null,
+                        "default": null,
+                        "required": true,
+                        "multiline": false
+                    },
+                    {
+                        "help": "",
+                        "name": "message_id",
+                        "type": "number",
+                        "label": null,
+                        "default": null,
+                        "required": true
+                    },
+                    {
+                        "help": "",
+                        "name": "created_at",
+                        "type": "date",
+                        "label": null,
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": -496,
+                    "y": 20
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 4,
+                            "module": "util:SetVariable2",
+                            "version": 1,
+                            "parameters": {},
+                            "filter": {
+                                "name": "Respuesta válida al último prompt",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{1.message.reply_to_message.message_id}}",
+                                            "o": "exist"
+                                        },
+                                        {
+                                            "a": "{{1.message.text}}",
+                                            "o": "exist"
+                                        },
+                                        {
+                                            "a": "{{length(trim(1.message.text))}}",
+                                            "b": "0",
+                                            "o": "number:greater"
+                                        },
+                                        {
+                                            "a": "{{1.message.reply_to_message.message_id}}",
+                                            "b": "{{17.message_id}}",
+                                            "o": "text:equal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "name": "Split",
+                                "scope": "roundtrip",
+                                "value": "{{split(1.message.text; \",\")}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -196,
+                                    "y": -280
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "scope": {
+                                            "label": "One cycle"
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "name",
+                                        "type": "text",
+                                        "label": "Variable name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "scope",
+                                        "type": "select",
+                                        "label": "Variable lifetime",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "roundtrip",
+                                                "execution"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "value",
+                                        "type": "any",
+                                        "label": "Variable value"
+                                    }
+                                ],
+                                "interface": [
+                                    {
+                                        "name": "Split",
+                                        "type": "any",
+                                        "label": "Split"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 5,
+                            "module": "builtin:BasicRouter",
+                            "version": 1,
+                            "filter": {
+                                "name": "¿Tiene 4 elementos?",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{length(4.Split)}}",
+                                            "b": "3",
+                                            "o": "array:greaterorequal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": null,
+                            "metadata": {
+                                "designer": {
+                                    "x": 123,
+                                    "y": -286
+                                }
+                            },
+                            "routes": [
+                                {
+                                    "flow": [
+                                        {
+                                            "id": 22,
+                                            "module": "util:SetVariables",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "scope": "roundtrip",
+                                                "variables": [
+                                                    {
+                                                        "name": "arrayhorasProgramadas",
+                                                        "value": "{{split(4.Split[1]; \":\")}}"
+                                                    },
+                                                    {
+                                                        "name": "arryhorasRealizadas",
+                                                        "value": "{{split(4.Split[2]; \":\")}}"
+                                                    }
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 428,
+                                                    "y": -294
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "scope": {
+                                                            "label": "One cycle"
+                                                        },
+                                                        "variables": {
+                                                            "items": [
+                                                                null,
+                                                                null
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "variables",
+                                                        "spec": [
+                                                            {
+                                                                "name": "name",
+                                                                "type": "text",
+                                                                "label": "Variable name",
+                                                                "required": true
+                                                            },
+                                                            {
+                                                                "name": "value",
+                                                                "type": "any",
+                                                                "label": "Variable value"
+                                                            }
+                                                        ],
+                                                        "type": "array",
+                                                        "label": "Variables"
+                                                    },
+                                                    {
+                                                        "name": "scope",
+                                                        "type": "select",
+                                                        "label": "Variable lifetime",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "roundtrip",
+                                                                "execution"
+                                                            ]
+                                                        }
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "arrayhorasProgramadas",
+                                                        "type": "any",
+                                                        "label": "arrayhorasProgramadas"
+                                                    },
+                                                    {
+                                                        "name": "arryhorasRealizadas",
+                                                        "type": "any",
+                                                        "label": "arryhorasRealizadas"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 6,
+                                            "module": "util:SetVariables",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "scope": "roundtrip",
+                                                "variables": [
+                                                    {
+                                                        "name": "chatID",
+                                                        "value": "{{1.message.chat.id}}"
+                                                    },
+                                                    {
+                                                        "name": "userID",
+                                                        "value": "{{1.message.from.id}}"
+                                                    },
+                                                    {
+                                                        "name": "userName",
+                                                        "value": "{{1.message.from.first_name}}"
+                                                    },
+                                                    {
+                                                        "name": "diaSemanaTemp",
+                                                        "value": "{{formatDate(now; \"dddd\")}}"
+                                                    },
+                                                    {
+                                                        "name": "fechaTemp",
+                                                        "value": "{{formatDate(now; \"DD-MM-YYYY hh:mm A\")}}"
+                                                    },
+                                                    {
+                                                        "name": "horasProgramasTemp",
+                                                        "value": "{{trim(replace(4.Split[1]; \":\"; \",\"))}}"
+                                                    },
+                                                    {
+                                                        "name": "horasRealizadasTemp",
+                                                        "value": "{{trim(replace(4.Split[2]; \":\"; \",\"))}}"
+                                                    },
+                                                    {
+                                                        "name": "ArrayCompletoObservacion",
+                                                        "value": "{{slice(4.Split; 2; length(4.Split))}}"
+                                                    },
+                                                    {
+                                                        "name": "minutosProgramados",
+                                                        "value": "{{parseNumber(22.arrayhorasProgramadas[1] * 60) + parseNumber(22.arrayhorasProgramadas[2])}}"
+                                                    },
+                                                    {
+                                                        "name": "minutosRealizado",
+                                                        "value": "{{parseNumber(22.arryhorasRealizadas[1] * 60) + parseNumber(22.arryhorasRealizadas[2])}}"
+                                                    }
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 721,
+                                                    "y": -284
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "scope": {
+                                                            "label": "One cycle"
+                                                        },
+                                                        "variables": {
+                                                            "items": [
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "variables",
+                                                        "spec": [
+                                                            {
+                                                                "name": "name",
+                                                                "type": "text",
+                                                                "label": "Variable name",
+                                                                "required": true
+                                                            },
+                                                            {
+                                                                "name": "value",
+                                                                "type": "any",
+                                                                "label": "Variable value"
+                                                            }
+                                                        ],
+                                                        "type": "array",
+                                                        "label": "Variables"
+                                                    },
+                                                    {
+                                                        "name": "scope",
+                                                        "type": "select",
+                                                        "label": "Variable lifetime",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "roundtrip",
+                                                                "execution"
+                                                            ]
+                                                        }
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "chatID",
+                                                        "type": "any",
+                                                        "label": "chatID"
+                                                    },
+                                                    {
+                                                        "name": "userID",
+                                                        "type": "any",
+                                                        "label": "userID"
+                                                    },
+                                                    {
+                                                        "name": "userName",
+                                                        "type": "any",
+                                                        "label": "userName"
+                                                    },
+                                                    {
+                                                        "name": "diaSemanaTemp",
+                                                        "type": "any",
+                                                        "label": "diaSemanaTemp"
+                                                    },
+                                                    {
+                                                        "name": "fechaTemp",
+                                                        "type": "any",
+                                                        "label": "fechaTemp"
+                                                    },
+                                                    {
+                                                        "name": "horasProgramasTemp",
+                                                        "type": "any",
+                                                        "label": "horasProgramasTemp"
+                                                    },
+                                                    {
+                                                        "name": "horasRealizadasTemp",
+                                                        "type": "any",
+                                                        "label": "horasRealizadasTemp"
+                                                    },
+                                                    {
+                                                        "name": "ArrayCompletoObservacion",
+                                                        "type": "any",
+                                                        "label": "ArrayCompletoObservacion"
+                                                    },
+                                                    {
+                                                        "name": "minutosProgramados",
+                                                        "type": "any",
+                                                        "label": "minutosProgramados"
+                                                    },
+                                                    {
+                                                        "name": "minutosRealizado",
+                                                        "type": "any",
+                                                        "label": "minutosRealizado"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 20,
+                                            "module": "util:SetVariables",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "scope": "roundtrip",
+                                                "variables": [
+                                                    {
+                                                        "name": "observacionCompleta",
+                                                        "value": "{{trim(join(6.ArrayCompletoObservacion; \",\"))}}"
+                                                    },
+                                                    {
+                                                        "name": "horasExtraTempAutomatica",
+                                                        "value": "{{max(0; 6.horasRealizadasTemp - parseNumber(6.horasProgramasTemp; \",\"))}}"
+                                                    },
+                                                    {
+                                                        "name": "DiferenciaMinutos",
+                                                        "value": "{{6.minutosRealizado - 6.minutosProgramados}}"
+                                                    }
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 928,
+                                                    "y": -142
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "scope": {
+                                                            "label": "One cycle"
+                                                        },
+                                                        "variables": {
+                                                            "items": [
+                                                                null,
+                                                                null,
+                                                                null
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "variables",
+                                                        "spec": [
+                                                            {
+                                                                "name": "name",
+                                                                "type": "text",
+                                                                "label": "Variable name",
+                                                                "required": true
+                                                            },
+                                                            {
+                                                                "name": "value",
+                                                                "type": "any",
+                                                                "label": "Variable value"
+                                                            }
+                                                        ],
+                                                        "type": "array",
+                                                        "label": "Variables"
+                                                    },
+                                                    {
+                                                        "name": "scope",
+                                                        "type": "select",
+                                                        "label": "Variable lifetime",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "roundtrip",
+                                                                "execution"
+                                                            ]
+                                                        }
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "observacionCompleta",
+                                                        "type": "any",
+                                                        "label": "observacionCompleta"
+                                                    },
+                                                    {
+                                                        "name": "horasExtraTempAutomatica",
+                                                        "type": "any",
+                                                        "label": "horasExtraTempAutomatica"
+                                                    },
+                                                    {
+                                                        "name": "DiferenciaMinutos",
+                                                        "type": "any",
+                                                        "label": "DiferenciaMinutos"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 23,
+                                            "module": "util:SetVariables",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "scope": "roundtrip",
+                                                "variables": [
+                                                    {
+                                                        "name": "MinutosExtras",
+                                                        "value": "{{if(20.DiferenciaMinutos > 0; 20.DiferenciaMinutos; 0)}}"
+                                                    },
+                                                    {
+                                                        "name": "MinutosPendientes",
+                                                        "value": "{{if(20.DiferenciaMinutos < 0; abs(20.DiferenciaMinutos); 0)}}"
+                                                    },
+                                                    {
+                                                        "name": "HorasExtras_HMM",
+                                                        "value": "{{floor(if(20.DiferenciaMinutos > 0; 20.DiferenciaMinutos; 0) / 60)}}\"h\"{{if(20.DiferenciaMinutos > 0; 20.DiferenciaMinutos; 0) % \"60 \"}}{{(\"\"\"mm\"\"\")}}"
+                                                    },
+                                                    {
+                                                        "name": "HorasPendientes_HMM",
+                                                        "value": "{{floor(if(20.DiferenciaMinutos < 0; abs(20.DiferenciaMinutos); 0) / 60)}}\"h\"{{if(20.DiferenciaMinutos < 0; abs(20.DiferenciaMinutos); 0) % \"60 \"}}{{(\"\"\"mm\"\"\")}}"
+                                                    },
+                                                    {
+                                                        "name": "pendientesDecimal",
+                                                        "value": "{{formatNumber(if(20.DiferenciaMinutos < 0; abs(20.DiferenciaMinutos); 0) / 60; 2)}}"
+                                                    },
+                                                    {
+                                                        "name": "extrasDecimal",
+                                                        "value": "{{formatNumber(if(20.DiferenciaMinutos > 0; 20.DiferenciaMinutos; 0) / 60; 2)}}"
+                                                    }
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 1228,
+                                                    "y": -142
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "scope": {
+                                                            "label": "One cycle"
+                                                        },
+                                                        "variables": {
+                                                            "items": [
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "variables",
+                                                        "spec": [
+                                                            {
+                                                                "name": "name",
+                                                                "type": "text",
+                                                                "label": "Variable name",
+                                                                "required": true
+                                                            },
+                                                            {
+                                                                "name": "value",
+                                                                "type": "any",
+                                                                "label": "Variable value"
+                                                            }
+                                                        ],
+                                                        "type": "array",
+                                                        "label": "Variables"
+                                                    },
+                                                    {
+                                                        "name": "scope",
+                                                        "type": "select",
+                                                        "label": "Variable lifetime",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "roundtrip",
+                                                                "execution"
+                                                            ]
+                                                        }
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "MinutosExtras",
+                                                        "type": "any",
+                                                        "label": "MinutosExtras"
+                                                    },
+                                                    {
+                                                        "name": "MinutosPendientes",
+                                                        "type": "any",
+                                                        "label": "MinutosPendientes"
+                                                    },
+                                                    {
+                                                        "name": "HorasExtras_HMM",
+                                                        "type": "any",
+                                                        "label": "HorasExtras_HMM"
+                                                    },
+                                                    {
+                                                        "name": "HorasPendientes_HMM",
+                                                        "type": "any",
+                                                        "label": "HorasPendientes_HMM"
+                                                    },
+                                                    {
+                                                        "name": "pendientesDecimal",
+                                                        "type": "any",
+                                                        "label": "pendientesDecimal"
+                                                    },
+                                                    {
+                                                        "name": "extrasDecimal",
+                                                        "type": "any",
+                                                        "label": "extrasDecimal"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 16,
+                                            "module": "builtin:BasicRouter",
+                                            "version": 1,
+                                            "mapper": null,
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 1460,
+                                                    "y": -126
+                                                }
+                                            },
+                                            "routes": [
+                                                {
+                                                    "flow": [
+                                                        {
+                                                            "id": 15,
+                                                            "module": "google-translate:TransformerTranslate",
+                                                            "version": 1,
+                                                            "parameters": {
+                                                                "account": 5856744
+                                                            },
+                                                            "filter": {
+                                                                "name": "Datos válidos",
+                                                                "conditions": [
+                                                                    [
+                                                                        {
+                                                                            "a": "{{parseNumber(22.arrayhorasProgramadas[1])}}",
+                                                                            "b": "0",
+                                                                            "o": "number:greaterorequal"
+                                                                        },
+                                                                        {
+                                                                            "a": "{{parseNumber(22.arryhorasRealizadas[1])}}",
+                                                                            "b": "0",
+                                                                            "o": "number:greaterorequal"
+                                                                        },
+                                                                        {
+                                                                            "a": "{{parseNumber(22.arrayhorasProgramadas[1])}}",
+                                                                            "b": "24",
+                                                                            "o": "number:lessorequal"
+                                                                        },
+                                                                        {
+                                                                            "a": "{{parseNumber(22.arryhorasRealizadas[1])}}",
+                                                                            "b": "24",
+                                                                            "o": "number:lessorequal"
+                                                                        },
+                                                                        {
+                                                                            "a": "{{parseNumber(22.arrayhorasProgramadas[2])}}",
+                                                                            "b": "0",
+                                                                            "o": "number:greaterorequal"
+                                                                        },
+                                                                        {
+                                                                            "a": "{{parseNumber(22.arryhorasRealizadas[2])}}",
+                                                                            "b": "0",
+                                                                            "o": "number:greaterorequal"
+                                                                        },
+                                                                        {
+                                                                            "a": "{{parseNumber(22.arrayhorasProgramadas[2])}}",
+                                                                            "b": "59",
+                                                                            "o": "number:lessorequal"
+                                                                        },
+                                                                        {
+                                                                            "a": "{{parseNumber(22.arryhorasRealizadas[2])}}",
+                                                                            "b": "59",
+                                                                            "o": "number:lessorequal"
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                            },
+                                                            "mapper": {
+                                                                "q": "{{6.diaSemanaTemp}}",
+                                                                "source": "en",
+                                                                "target": "es",
+                                                                "maxResults": "1"
+                                                            },
+                                                            "metadata": {
+                                                                "designer": {
+                                                                    "x": 1607,
+                                                                    "y": -535
+                                                                },
+                                                                "restore": {
+                                                                    "expect": {
+                                                                        "source": {
+                                                                            "mode": "chose",
+                                                                            "label": "English"
+                                                                        },
+                                                                        "target": {
+                                                                            "mode": "chose",
+                                                                            "label": "Spanish"
+                                                                        }
+                                                                    },
+                                                                    "parameters": {
+                                                                        "account": {
+                                                                            "data": {
+                                                                                "scoped": "true",
+                                                                                "connection": "google-translate"
+                                                                            },
+                                                                            "label": "My Google Translate connection"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "parameters": [
+                                                                    {
+                                                                        "name": "account",
+                                                                        "type": "account:google-translate",
+                                                                        "label": "Connection",
+                                                                        "required": true
+                                                                    }
+                                                                ],
+                                                                "expect": [
+                                                                    {
+                                                                        "name": "source",
+                                                                        "type": "select",
+                                                                        "label": "Source language (From)"
+                                                                    },
+                                                                    {
+                                                                        "name": "target",
+                                                                        "type": "select",
+                                                                        "label": "Target language (To)",
+                                                                        "required": true
+                                                                    },
+                                                                    {
+                                                                        "name": "q",
+                                                                        "type": "text",
+                                                                        "label": "Text to translate",
+                                                                        "required": true
+                                                                    },
+                                                                    {
+                                                                        "name": "maxResults",
+                                                                        "type": "uinteger",
+                                                                        "label": "Maximum number of returned results ",
+                                                                        "required": true
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        {
+                                                            "id": 21,
+                                                            "module": "google-sheets:addRow",
+                                                            "version": 2,
+                                                            "parameters": {
+                                                                "__IMTCONN__": 5856832
+                                                            },
+                                                            "mapper": {
+                                                                "from": "drive",
+                                                                "mode": "select",
+                                                                "values": {
+                                                                    "0": "{{6.fechaTemp}}",
+                                                                    "1": "{{15.text}}",
+                                                                    "2": "{{6.horasProgramasTemp}}",
+                                                                    "3": "{{6.horasRealizadasTemp}}",
+                                                                    "4": "{{23.extrasDecimal}}",
+                                                                    "5": "{{20.observacionCompleta}}",
+                                                                    "6": "{{23.pendientesDecimal}}"
+                                                                },
+                                                                "sheetId": "Hoja 1",
+                                                                "spreadsheetId": "/1cvTsm1pGW-0fjQv-QRcFn-dALpap-tH1ZvErtVyM7uA",
+                                                                "includesHeaders": true,
+                                                                "insertDataOption": "INSERT_ROWS",
+                                                                "valueInputOption": "USER_ENTERED",
+                                                                "insertUnformatted": false
+                                                            },
+                                                            "metadata": {
+                                                                "designer": {
+                                                                    "x": 1751,
+                                                                    "y": -138
+                                                                },
+                                                                "restore": {
+                                                                    "expect": {
+                                                                        "from": {
+                                                                            "label": "My Drive"
+                                                                        },
+                                                                        "mode": {
+                                                                            "label": "Search by path"
+                                                                        },
+                                                                        "sheetId": {
+                                                                            "label": "Hoja 1"
+                                                                        },
+                                                                        "spreadsheetId": {
+                                                                            "path": [
+                                                                                "control-hora"
+                                                                            ]
+                                                                        },
+                                                                        "includesHeaders": {
+                                                                            "label": "Yes",
+                                                                            "nested": [
+                                                                                {
+                                                                                    "name": "values",
+                                                                                    "spec": [
+                                                                                        {
+                                                                                            "name": "0",
+                                                                                            "type": "text",
+                                                                                            "label": "Fecha (A)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "1",
+                                                                                            "type": "text",
+                                                                                            "label": "Día (B)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "2",
+                                                                                            "type": "text",
+                                                                                            "label": "Horas Programadas (C)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "3",
+                                                                                            "type": "text",
+                                                                                            "label": "Horas Realizadas (D)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "4",
+                                                                                            "type": "text",
+                                                                                            "label": "Total Horas Extra (E)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "5",
+                                                                                            "type": "text",
+                                                                                            "label": "Observaciones (F)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "6",
+                                                                                            "type": "text",
+                                                                                            "label": "Total Horas Pendietes (G)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "7",
+                                                                                            "type": "text",
+                                                                                            "label": "(H)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "8",
+                                                                                            "type": "text",
+                                                                                            "label": "Total horas programadas (I)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "9",
+                                                                                            "type": "text",
+                                                                                            "label": "Total horas hechas (J)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "10",
+                                                                                            "type": "text",
+                                                                                            "label": "Total horas extras (K)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "11",
+                                                                                            "type": "text",
+                                                                                            "label": "Total horas pendientes (L)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "12",
+                                                                                            "type": "text",
+                                                                                            "label": "(M)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "13",
+                                                                                            "type": "text",
+                                                                                            "label": "(N)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "14",
+                                                                                            "type": "text",
+                                                                                            "label": "(O)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "15",
+                                                                                            "type": "text",
+                                                                                            "label": "(P)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "16",
+                                                                                            "type": "text",
+                                                                                            "label": "(Q)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "17",
+                                                                                            "type": "text",
+                                                                                            "label": "(R)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "18",
+                                                                                            "type": "text",
+                                                                                            "label": "(S)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "19",
+                                                                                            "type": "text",
+                                                                                            "label": "(T)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "20",
+                                                                                            "type": "text",
+                                                                                            "label": "(U)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "21",
+                                                                                            "type": "text",
+                                                                                            "label": "(V)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "22",
+                                                                                            "type": "text",
+                                                                                            "label": "(W)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "23",
+                                                                                            "type": "text",
+                                                                                            "label": "(X)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "24",
+                                                                                            "type": "text",
+                                                                                            "label": "(Y)"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "25",
+                                                                                            "type": "text",
+                                                                                            "label": "(Z)"
+                                                                                        }
+                                                                                    ],
+                                                                                    "type": "collection",
+                                                                                    "label": "Values"
+                                                                                }
+                                                                            ]
+                                                                        },
+                                                                        "insertDataOption": {
+                                                                            "mode": "chose",
+                                                                            "label": "Insert rows"
+                                                                        },
+                                                                        "valueInputOption": {
+                                                                            "mode": "chose",
+                                                                            "label": "User entered"
+                                                                        },
+                                                                        "insertUnformatted": {
+                                                                            "mode": "chose"
+                                                                        }
+                                                                    },
+                                                                    "parameters": {
+                                                                        "__IMTCONN__": {
+                                                                            "data": {
+                                                                                "scoped": "true",
+                                                                                "connection": "google"
+                                                                            },
+                                                                            "label": "My Google connection (miguelozanodev@gmail.com)"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "parameters": [
+                                                                    {
+                                                                        "name": "__IMTCONN__",
+                                                                        "type": "account:google",
+                                                                        "label": "Connection",
+                                                                        "required": true
+                                                                    }
+                                                                ],
+                                                                "expect": [
+                                                                    {
+                                                                        "name": "mode",
+                                                                        "type": "select",
+                                                                        "label": "Search Method",
+                                                                        "required": true,
+                                                                        "validate": {
+                                                                            "enum": [
+                                                                                "select",
+                                                                                "fromAll",
+                                                                                "map"
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "insertUnformatted",
+                                                                        "type": "boolean",
+                                                                        "label": "Unformatted",
+                                                                        "required": true
+                                                                    },
+                                                                    {
+                                                                        "name": "valueInputOption",
+                                                                        "type": "select",
+                                                                        "label": "Value input option",
+                                                                        "validate": {
+                                                                            "enum": [
+                                                                                "USER_ENTERED",
+                                                                                "RAW"
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "insertDataOption",
+                                                                        "type": "select",
+                                                                        "label": "Insert data option",
+                                                                        "validate": {
+                                                                            "enum": [
+                                                                                "INSERT_ROWS",
+                                                                                "OVERWRITE"
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "from",
+                                                                        "type": "select",
+                                                                        "label": "Drive",
+                                                                        "required": true,
+                                                                        "validate": {
+                                                                            "enum": [
+                                                                                "drive",
+                                                                                "share",
+                                                                                "team"
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "spreadsheetId",
+                                                                        "type": "file",
+                                                                        "label": "Spreadsheet ID",
+                                                                        "required": true
+                                                                    },
+                                                                    {
+                                                                        "name": "sheetId",
+                                                                        "type": "select",
+                                                                        "label": "Sheet Name",
+                                                                        "required": true
+                                                                    },
+                                                                    {
+                                                                        "name": "includesHeaders",
+                                                                        "type": "select",
+                                                                        "label": "Table contains headers",
+                                                                        "required": true,
+                                                                        "validate": {
+                                                                            "enum": [
+                                                                                true,
+                                                                                false
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "values",
+                                                                        "spec": [
+                                                                            {
+                                                                                "name": "0",
+                                                                                "type": "text",
+                                                                                "label": "Fecha (A)"
+                                                                            },
+                                                                            {
+                                                                                "name": "1",
+                                                                                "type": "text",
+                                                                                "label": "Día (B)"
+                                                                            },
+                                                                            {
+                                                                                "name": "2",
+                                                                                "type": "text",
+                                                                                "label": "Horas Programadas (C)"
+                                                                            },
+                                                                            {
+                                                                                "name": "3",
+                                                                                "type": "text",
+                                                                                "label": "Horas Realizadas (D)"
+                                                                            },
+                                                                            {
+                                                                                "name": "4",
+                                                                                "type": "text",
+                                                                                "label": "Total Horas Extra (E)"
+                                                                            },
+                                                                            {
+                                                                                "name": "5",
+                                                                                "type": "text",
+                                                                                "label": "Observaciones (F)"
+                                                                            },
+                                                                            {
+                                                                                "name": "6",
+                                                                                "type": "text",
+                                                                                "label": "Total Horas Pendietes (G)"
+                                                                            },
+                                                                            {
+                                                                                "name": "7",
+                                                                                "type": "text",
+                                                                                "label": "(H)"
+                                                                            },
+                                                                            {
+                                                                                "name": "8",
+                                                                                "type": "text",
+                                                                                "label": "Total horas programadas (I)"
+                                                                            },
+                                                                            {
+                                                                                "name": "9",
+                                                                                "type": "text",
+                                                                                "label": "Total horas hechas (J)"
+                                                                            },
+                                                                            {
+                                                                                "name": "10",
+                                                                                "type": "text",
+                                                                                "label": "Total horas extras (K)"
+                                                                            },
+                                                                            {
+                                                                                "name": "11",
+                                                                                "type": "text",
+                                                                                "label": "Total horas pendientes (L)"
+                                                                            },
+                                                                            {
+                                                                                "name": "12",
+                                                                                "type": "text",
+                                                                                "label": "(M)"
+                                                                            },
+                                                                            {
+                                                                                "name": "13",
+                                                                                "type": "text",
+                                                                                "label": "(N)"
+                                                                            },
+                                                                            {
+                                                                                "name": "14",
+                                                                                "type": "text",
+                                                                                "label": "(O)"
+                                                                            },
+                                                                            {
+                                                                                "name": "15",
+                                                                                "type": "text",
+                                                                                "label": "(P)"
+                                                                            },
+                                                                            {
+                                                                                "name": "16",
+                                                                                "type": "text",
+                                                                                "label": "(Q)"
+                                                                            },
+                                                                            {
+                                                                                "name": "17",
+                                                                                "type": "text",
+                                                                                "label": "(R)"
+                                                                            },
+                                                                            {
+                                                                                "name": "18",
+                                                                                "type": "text",
+                                                                                "label": "(S)"
+                                                                            },
+                                                                            {
+                                                                                "name": "19",
+                                                                                "type": "text",
+                                                                                "label": "(T)"
+                                                                            },
+                                                                            {
+                                                                                "name": "20",
+                                                                                "type": "text",
+                                                                                "label": "(U)"
+                                                                            },
+                                                                            {
+                                                                                "name": "21",
+                                                                                "type": "text",
+                                                                                "label": "(V)"
+                                                                            },
+                                                                            {
+                                                                                "name": "22",
+                                                                                "type": "text",
+                                                                                "label": "(W)"
+                                                                            },
+                                                                            {
+                                                                                "name": "23",
+                                                                                "type": "text",
+                                                                                "label": "(X)"
+                                                                            },
+                                                                            {
+                                                                                "name": "24",
+                                                                                "type": "text",
+                                                                                "label": "(Y)"
+                                                                            },
+                                                                            {
+                                                                                "name": "25",
+                                                                                "type": "text",
+                                                                                "label": "(Z)"
+                                                                            }
+                                                                        ],
+                                                                        "type": "collection",
+                                                                        "label": "Values"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        {
+                                                            "id": 8,
+                                                            "module": "telegram:SendReplyMessage",
+                                                            "version": 1,
+                                                            "parameters": {
+                                                                "__IMTCONN__": 5856653
+                                                            },
+                                                            "mapper": {
+                                                                "text": "✅ *REGISTRO GUARDADO CORRECTAMENTE*\r\n\r\n📅 Fecha: {{6.fechaTemp}}\r\n👤 Usuario: {{6.userName}}\r\n⏰ Horas programadas: {{6.horasProgramasTemp}}\n✔️ Horas realizadas: {{6.horasRealizadasTemp}}\n➕ Horas extra: {{23.extrasDecimal}}\n📝 Observación: {{20.observacionCompleta}}\n\n(Las horas extras se calcularon automáticamente)",
+                                                                "chatId": "{{6.chatID}}",
+                                                                "parseMode": "Markdown",
+                                                                "replyMarkup": "",
+                                                                "messageThreadId": "",
+                                                                "replyToMessageId": "{{1.message.message_id}}",
+                                                                "replyMarkupAssembleType": "reply_markup_enter"
+                                                            },
+                                                            "metadata": {
+                                                                "designer": {
+                                                                    "x": 2102,
+                                                                    "y": -148
+                                                                },
+                                                                "restore": {
+                                                                    "expect": {
+                                                                        "parseMode": {
+                                                                            "label": "Markdown"
+                                                                        },
+                                                                        "disableNotification": {
+                                                                            "mode": "chose"
+                                                                        },
+                                                                        "replyMarkupAssembleType": {
+                                                                            "label": "Enter the Reply Markup"
+                                                                        }
+                                                                    },
+                                                                    "parameters": {
+                                                                        "__IMTCONN__": {
+                                                                            "data": {
+                                                                                "scoped": "true",
+                                                                                "connection": "telegram"
+                                                                            },
+                                                                            "label": "My Telegram Bot connection"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "parameters": [
+                                                                    {
+                                                                        "name": "__IMTCONN__",
+                                                                        "type": "account:telegram",
+                                                                        "label": "Connection",
+                                                                        "required": true
+                                                                    }
+                                                                ],
+                                                                "expect": [
+                                                                    {
+                                                                        "name": "chatId",
+                                                                        "type": "text",
+                                                                        "label": "Chat ID",
+                                                                        "required": true
+                                                                    },
+                                                                    {
+                                                                        "name": "text",
+                                                                        "type": "text",
+                                                                        "label": "Text",
+                                                                        "required": true
+                                                                    },
+                                                                    {
+                                                                        "name": "messageThreadId",
+                                                                        "type": "number",
+                                                                        "label": "Message Thread ID"
+                                                                    },
+                                                                    {
+                                                                        "name": "parseMode",
+                                                                        "type": "select",
+                                                                        "label": "Parse Mode",
+                                                                        "validate": {
+                                                                            "enum": [
+                                                                                "Markdown",
+                                                                                "HTML"
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "disableNotification",
+                                                                        "type": "boolean",
+                                                                        "label": "Disable Notifications"
+                                                                    },
+                                                                    {
+                                                                        "name": "disableWebPagePreview",
+                                                                        "type": "boolean",
+                                                                        "label": "Disable Link Previews"
+                                                                    },
+                                                                    {
+                                                                        "name": "replyToMessageId",
+                                                                        "type": "number",
+                                                                        "label": "Original Message ID"
+                                                                    },
+                                                                    {
+                                                                        "name": "replyMarkupAssembleType",
+                                                                        "type": "select",
+                                                                        "label": "Enter/Assemble the Reply Markup Field",
+                                                                        "validate": {
+                                                                            "enum": [
+                                                                                "reply_markup_enter",
+                                                                                "reply_markup_assemble"
+                                                                            ]
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        "name": "replyMarkup",
+                                                                        "type": "text",
+                                                                        "label": "Reply Markup"
+                                                                    }
+                                                                ],
+                                                                "advanced": true
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 9,
+                            "module": "telegram:SendReplyMessage",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": 5856653
+                            },
+                            "filter": {
+                                "name": "¿Es respuesta inválida?",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{1.message.reply_to_message.message_id}}",
+                                            "b": "{{17.message_id}}",
+                                            "o": "text:equal"
+                                        },
+                                        {
+                                            "a": "{{1.message.text}}",
+                                            "b": ",",
+                                            "o": "text:notcontain"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "text": "❌ *ERROR EN EL FORMATO*\r\n\r\nEl mensaje no cumple con la estructura requerida.\r\n\r\nPor favor, responde al mensaje del bot con este formato:\r\n\r\n📌 HORAS PROGRAMADAS, HORAS REALIZADAS, TOTAL EXTRA Y OBSERVACIÓN\r\n\r\n*Ejemplo correcto:*\r\n8, 8, Libre\r\n\r\n⚠️ Asegúrate de:\r\n- Usar comas para separar\n- Usar punto como separador decimal (ej: 7.5).\r\n- Incluir los 3 campos\r\n- Responder al mensaje original del bot",
+                                "chatId": "{{1.message.chat.id}}",
+                                "parseMode": "Markdown",
+                                "replyMarkup": "",
+                                "messageThreadId": "",
+                                "replyToMessageId": "{{1.message.message_id}}",
+                                "replyMarkupAssembleType": "reply_markup_enter"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 13,
+                                    "y": 21
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "parseMode": {
+                                            "label": "Markdown"
+                                        },
+                                        "disableNotification": {
+                                            "mode": "chose"
+                                        },
+                                        "replyMarkupAssembleType": {
+                                            "label": "Enter the Reply Markup"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "telegram"
+                                            },
+                                            "label": "My Telegram Bot connection"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:telegram",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "chatId",
+                                        "type": "text",
+                                        "label": "Chat ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "text",
+                                        "type": "text",
+                                        "label": "Text",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "messageThreadId",
+                                        "type": "number",
+                                        "label": "Message Thread ID"
+                                    },
+                                    {
+                                        "name": "parseMode",
+                                        "type": "select",
+                                        "label": "Parse Mode",
+                                        "validate": {
+                                            "enum": [
+                                                "Markdown",
+                                                "HTML"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "disableNotification",
+                                        "type": "boolean",
+                                        "label": "Disable Notifications"
+                                    },
+                                    {
+                                        "name": "disableWebPagePreview",
+                                        "type": "boolean",
+                                        "label": "Disable Link Previews"
+                                    },
+                                    {
+                                        "name": "replyToMessageId",
+                                        "type": "number",
+                                        "label": "Original Message ID"
+                                    },
+                                    {
+                                        "name": "replyMarkupAssembleType",
+                                        "type": "select",
+                                        "label": "Enter/Assemble the Reply Markup Field",
+                                        "validate": {
+                                            "enum": [
+                                                "reply_markup_enter",
+                                                "reply_markup_assemble"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "replyMarkup",
+                                        "type": "text",
+                                        "label": "Reply Markup"
+                                    }
+                                ],
+                                "advanced": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 18,
+                            "module": "telegram:SendReplyMessage",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": 5856653
+                            },
+                            "filter": {
+                                "name": "Respuesta a replay antiguo",
+                                "conditions": [
+                                    [
+                                        {
+                                            "a": "{{1.message.reply_to_message.message_id}}",
+                                            "b": "{{17.message_id}}",
+                                            "o": "text:notequal"
+                                        }
+                                    ]
+                                ]
+                            },
+                            "mapper": {
+                                "text": "⚠️ Este mensaje no es una *respuesta* al último prompt del bot.\r\nPor favor, toca “Responder” sobre el mensaje con las instrucciones y envía los datos en el formato indicado.",
+                                "chatId": "{{1.message.chat.id}}",
+                                "parseMode": "Markdown",
+                                "replyMarkup": "",
+                                "messageThreadId": "",
+                                "replyToMessageId": "{{1.message.message_id}}",
+                                "replyMarkupAssembleType": "reply_markup_enter"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -196,
+                                    "y": 320
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "parseMode": {
+                                            "label": "Markdown"
+                                        },
+                                        "disableNotification": {
+                                            "mode": "chose"
+                                        },
+                                        "replyMarkupAssembleType": {
+                                            "label": "Enter the Reply Markup"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "telegram"
+                                            },
+                                            "label": "My Telegram Bot connection"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:telegram",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "chatId",
+                                        "type": "text",
+                                        "label": "Chat ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "text",
+                                        "type": "text",
+                                        "label": "Text",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "messageThreadId",
+                                        "type": "number",
+                                        "label": "Message Thread ID"
+                                    },
+                                    {
+                                        "name": "parseMode",
+                                        "type": "select",
+                                        "label": "Parse Mode",
+                                        "validate": {
+                                            "enum": [
+                                                "Markdown",
+                                                "HTML"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "disableNotification",
+                                        "type": "boolean",
+                                        "label": "Disable Notifications"
+                                    },
+                                    {
+                                        "name": "disableWebPagePreview",
+                                        "type": "boolean",
+                                        "label": "Disable Link Previews"
+                                    },
+                                    {
+                                        "name": "replyToMessageId",
+                                        "type": "number",
+                                        "label": "Original Message ID"
+                                    },
+                                    {
+                                        "name": "replyMarkupAssembleType",
+                                        "type": "select",
+                                        "label": "Enter/Assemble the Reply Markup Field",
+                                        "validate": {
+                                            "enum": [
+                                                "reply_markup_enter",
+                                                "reply_markup_assemble"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "replyMarkup",
+                                        "type": "text",
+                                        "label": "Reply Markup"
+                                    }
+                                ],
+                                "advanced": true
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}
